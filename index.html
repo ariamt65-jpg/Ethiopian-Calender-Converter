@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habesha Calendar Converter | Ethiopian to Gregorian & Ge'ez Date Tool</title>
+    <meta name="description" content="Convert between Ethiopian and Gregorian calendars instantly. Accurate two-way converter supporting the 13th month (Pagumē) and leap years.">
+    <meta name="keywords" content="Ethiopian Calendar Converter, Gregorian to Ge'ez, 13 Months of Sunshine, Ethiopian Date Converter, Habesha Calendar">
+    <style>
+        /* ---------- RESET ---------- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: auto; min-height: 100vh; }
+
+        /* ---------- BASE ---------- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f2027 linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+        }
+        h1, h2, h3 { color: #fff; }
+        a { color: #4ecdc4; text-decoration: none; }
+        a:hover { color: #88d3ce; }
+
+        /* ---------- HEADER ---------- */
+        header {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+            background: rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            background: linear-gradient(45deg, #4ecdc4, #88d3ce, #a8e6cf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+        .subtitle { font-size: clamp(1rem, 2.5vw, 1.2rem); opacity: .9; margin: .5rem 0 1rem; font-weight: 300; }
+        .header-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: .5rem 1rem;
+            border-radius: 50px;
+            font-size: .9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ---------- MAIN ---------- */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* ---------- AD SLOTS ---------- */
+        .ad-slot {
+            width: 100%;
+            max-width: 728px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+        }
+
+        /* ---------- CONVERTER CARD ---------- */
+        .converter-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .converter-section { margin-bottom: 2rem; }
+        .converter-section h2 { font-size: 1.5rem; margin-bottom: 1rem; }
+        .input-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .input-wrapper { flex: 1; min-width: 120px; }
+        label { display: block; margin-bottom: .5rem; font-size: .9rem; opacity: .8; color: #fff; }
+        input, select {
+            width: 100%;
+            padding: .75rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-size: 1rem;
+        }
+        input:focus, select:focus { outline: none; border-color: #4ecdc4; background: rgba(255, 255, 255, 0.12); }
+
+        .flag-icon {
+            display: inline-block;
+            width: 20px; height: 15px;
+            background: linear-gradient(to bottom, #078930 33%, #FCDD09 33% 66%, #DA121A 66%);
+            border-radius: 3px; margin-right: .5rem; vertical-align: middle;
+        }
+
+        .convert-btn, .today-btn {
+            width: 100%; padding: 1rem; margin-top: 1rem;
+            background: linear-gradient(45deg, #4ecdc4, #2a9d8f);
+            color: #fff; font-size: 1.1rem; font-weight: 600; border: none;
+            border-radius: 10px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,.2);
+            transition: all .3s ease;
+        }
+        .convert-btn:hover, .today-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+        .today-btn { font-size: .9rem; padding: .5rem 1rem; margin-top: .5rem; }
+
+        /* ---------- RESULT ---------- */
+        .result {
+            position: relative;
+            margin-top: 1rem; padding: 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px; font-size: 1.2rem; color: #fff;
+            text-align: center; min-height: 50px;
+        }
+        .copy-btn {
+            position: absolute; right: .5rem; top: 50%; transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px; padding: .5rem; cursor: pointer; transition: background .3s;
+        }
+        .copy-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .copy-btn svg { width: 16px; height: 16px; fill: #fff; }
+
+        .tooltip {
+            position: fixed; background: rgba(0, 0, 0, 0.8); color: #fff;
+            padding: .5rem 1rem; border-radius: 6px; font-size: .8rem;
+            pointer-events: none; opacity: 0; transition: opacity .3s; z-index: 1000;
+        }
+        .tooltip.show { opacity: 1; }
+
+        /* ---------- ABOUT ---------- */
+        .how-it-works {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; padding: 2rem; text-align: justify;
+        }
+        .how-it-works h2 { text-align: center; margin-bottom: 1rem; }
+        .how-it-works p { margin-bottom: 1rem; }
+        .calendar-facts {
+            background: rgba(255, 255, 255, 0.05); border-left: 4px solid #4ecdc4;
+            border-radius: 15px; padding: 1.5rem; margin: 1.5rem 0;
+        }
+        .calendar-facts h3 { color: #4ecdc4; margin-bottom: .5rem; }
+        .calendar-facts ul { padding-left: 1.5rem; }
+
+        /* ---------- FOOTER ---------- */
+        footer {
+            background: rgba(0, 0, 0, 0.25); border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center; padding: 2rem;
+        }
+        .coffee-btn {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .75rem 1.5rem; background: #FFDD00; color: #000;
+            border-radius: 50px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,.2);
+            transition: all .3s ease;
+        }
+        .coffee-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.3); background: #e6c700; }
+
+        /* ---------- MODAL ---------- */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);
+        }
+        .modal-content {
+            background: rgba(30,30,40,0.95); margin: 5% auto; padding: 2rem;
+            border-radius: 20px; width: 90%; max-width: 800px; max-height: 80vh;
+            overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-content h2 { color: #4ecdc4; margin-bottom: 1rem; }
+        .modal-content h3 { color: #88d3ce; margin: 1.5rem 0 .5rem; }
+        .modal-content p { margin-bottom: 1rem; line-height: 1.6; }
+        .close-btn {
+            color: #aaa; float: right; font-size: 28px; font-weight: bold;
+            cursor: pointer; transition: color .3s;
+        }
+        .close-btn:hover { color: #4ecdc4; }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 600px) {
+            .input-group { flex-direction: column; }
+            .input-wrapper { min-width: 100%; }
+            .converter-card, .how-it-works { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Habesha Calendar Converter</h1>
+            <p class="subtitle">Convert Between Ethiopian and Gregorian Calendars</p>
+            <span class="header-badge">13 Months of Sunshine • Accurate & Reliable</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="ad-slot" id="top-ad-banner">Google AdSense Top Banner - 728x90</div>
+
+        <div class="converter-card">
+            <div class="converter-section">
+                <h2>Gregorian to Ethiopian Calendar</h2>
+                <div class="input-group">
+                    <div class="input-wrapper"><label for="greg-day">Day</label><input type="number" id="greg-day" min="1" max="31" placeholder="DD"></div>
+                    <div class="input-wrapper"><label for="greg-month">Month</label><select id="greg-month">  <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+                    <div class="input-wrapper"><label for="greg-year">Year</label><input type="number" id="greg-year" min="1900" max="2100" placeholder="YYYY"></div>
+                </div>
+                <button class="convert-btn" onclick="convertGtoE()">Convert to Ethiopian</button>
+                <button class="today-btn" onclick="setToday()">📅 Set to Today</button>
+                <div class="result" id="eth-result">Enter a date and click Convert
+                    <button class="copy-btn" onclick="copyRes('eth-result')"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+                </div>
+            </div>
+
+            <div class="converter-section">
+                <h2><span class="flag-icon"></span>Ethiopian to Gregorian Calendar</h2>
+                <div class="input-group">
+                    <div class="input-wrapper"><label for="eth-day">Day</label><input type="number" id="eth-day" min="1" max="30" placeholder="DD"></div>
+                    <div class="input-wrapper"><label for="eth-month">Month</label><select id="eth-month"><option value="1">Mäskäräm / መስከረም</option><option value="2">Ṭəqəmt / ጥቅምት</option><option value="3">Ḫədar / ኅዳር</option><option value="4">Taḫśaś / ታኅሣሥ</option><option value="5">Ṭərr / ጥር</option><option value="6">Yäkatit / የካቲት</option><option value="7">Mägabit / መጋቢት</option><option value="8">Miyazya / ሚያዝያ</option><option value="9">Gənbo / ግንቦት</option><option value="10">Säne / ሰኔ</option><option value="11">Ḥamle / ሐምሌ</option><option value="12">Nähase / ነሐሴ</option><option value="13">Ṗagʷəmen / ጳጉሜን</option></select></div>
+                    <div class="input-wrapper"><label for="eth-year">Year</label><input type="number" id="eth-year" min="1900" max="2100" placeholder="YYYY"></div>
+                </div>
+                <button class="convert-btn" onclick="convertEtoG()">Convert to Gregorian</button>
+                <div class="result" id="gre-result">Enter a date and click Convert
+                    <button class="copy-btn" onclick="copyRes('gre-result')"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ad-slot" id="middle-ad-content">Google AdSense Middle Content - 468x60</div>
+
+        <div class="how-it-works">
+            <h2>Understanding the Ethiopian Calendar System</h2>
+            <div class="calendar-facts"><h3>🌟 Unique Features</h3><ul><li><strong>13 Months:</strong> 12 months of 30 days each + 1 month (Pagumē) of 5-6 days</li><li><strong>Time Difference:</strong> 7-8 years behind Gregorian calendar</li><li><strong>New Year:</strong> Starts on September 11 (or 12 in leap years)</li><li><strong>Leap Years:</strong> Every 4 years without exception</li></ul></div>
+            <p>The Ethiopian calendar, also known as the Ge'ez calendar, represents one of the world's most unique timekeeping systems. This ancient calendar, still actively used by over 115 million people in Ethiopia and the Ethiopian diaspora worldwide, offers a fascinating glimpse into alternative methods of tracking time that have survived millennia of cultural and political changes.</p>
+            <div class="calendar-facts"><h3>📊 The Mathematical Difference</h3><p>The 7-8 year gap between Ethiopian and Gregorian calendars stems from different calculations regarding the Annunciation of Jesus. While the Gregorian calendar is based on the calculation made by Dionysius Exiguus in 525 AD, the Ethiopian calendar follows the ancient Alexandrian method of calculation. This mathematical distinction means that when the world celebrates 2025, Ethiopians will be welcoming 2017. The difference isn't merely academic—it represents two distinct approaches to measuring sacred time that have persisted for over 1,500 years.</p></div>
+            <p>Unlike the Gregorian calendar that most of the world follows, the Ethiopian calendar operates on a completely different timeline. While the rest of the world celebrates the year 2024, Ethiopians are living in 2016. This seven to eight-year difference stems from different calculations regarding the Annunciation of Jesus, making Ethiopia's calendar system one of the few remaining official calendars that maintains its unique historical and religious significance.</p>
+            <div class="calendar-facts"><h3>🎉 The Significance of Enkutatash</h3><p>Enkutatash, the Ethiopian New Year celebrated on Mäskäräm 1 (September 11 or 12), represents far more than a simple calendar change. This ancient celebration, whose name literally means "gift of jewels," commemorates the return of the Queen of Sheba from her visit to King Solomon. The festival marks not only the beginning of a new year but also the end of the rainy season and the start of the harvest period. Yellow flowers (Adey Abeba) bloom across the highlands, children sing traditional songs while carrying bouquets, and families gather to share meals and exchange blessings for the coming year.</p></div>
+            <div class="calendar-facts"><h3>📅 The 13 Months Explained</h3><p>The Ethiopian calendar's most distinctive feature is its 13-month structure. The first 12 months each contain exactly 30 days, creating a beautifully symmetrical system that many find more intuitive than the varying month lengths in the Gregorian calendar. The 13th month, Pagumē (ጳጉሜን), contains 5 days in ordinary years and 6 days in leap years, giving Ethiopia its famous nickname "the land of 13 months of sunshine."</p></div>
+            <div class="calendar-facts"><h3>🔢 Calculation Accuracy</h3><p>This converter employs the Julian Day Number (JDN) algorithm, the gold standard for calendar conversions. The JDN system provides a continuous count of days since January 1, 4713 BC, enabling precise conversions between calendar systems. Our implementation specifically uses the Ethiopian epoch (JDN 1723856) and accounts for the unique leap year patterns that distinguish Ethiopian timekeeping. This mathematical precision ensures accurate conversions even for historical dates spanning multiple centuries, making it invaluable for genealogists, historians, and researchers working with Ethiopian documents or records.</p></div>
+            <p>Each month in the Ethiopian calendar carries deep cultural and often religious significance. Mäskäräm (መስከረም), the first month beginning in September, marks not just the new year but also the end of the rainy season and the beginning of harvest time. This connection between the calendar and agricultural cycles reflects the deep integration of timekeeping with natural rhythms that characterizes many traditional calendar systems.</p>
+            <p>The calendar's leap year system, occurring every four years without exception, creates predictable patterns that have guided agricultural activities, religious observances, and cultural celebrations for centuries. This reliability has made the Ethiopian calendar not just a timekeeping tool but a cornerstone of cultural identity that connects modern Ethiopians to their ancient heritage.</p>
+            <div class="calendar-facts"><h3>🌍 Cultural Significance</h3><p>Beyond its practical applications, the Ethiopian calendar serves as a powerful symbol of cultural preservation and identity. In an increasingly globalized world where unique traditions often face pressure to conform to international standards, Ethiopia's maintenance of its calendar system represents a remarkable commitment to cultural authenticity and historical continuity. The calendar serves as a daily reminder of Ethiopia's unique position as the only African nation to maintain its independence during the colonial era, and its calendar stands as a testament to this enduring sovereignty.</p></div>
+            <p>Understanding and using the Ethiopian calendar converter provides more than just practical date translation—it offers a window into an alternative way of experiencing time itself. Whether you're planning travel to Ethiopia, connecting with Ethiopian heritage, or simply exploring the rich diversity of human approaches to measuring time, this tool serves as your gateway to appreciating one of humanity's most enduring calendar systems. The converter bridges not just dates but cultures, enabling meaningful connections between the Ethiopian diaspora and their homeland, facilitating international business and travel, and preserving an ancient system of knowledge for future generations.</p>
+        </div>
+
+        <div class="ad-slot" id="footer-ad-link">Google AdSense Footer Link - 728x15</div>
+    </main>
+
+    <footer>
+        <p>Made with ❤️ for the Habesha community</p>
+        <a href="https://buymeacoffee.com/Ariamh" class="coffee-btn" target="_blank"><span>☕</span> Buy me a coffee</a>
+        <br><br>
+        <a href="#" onclick="openModal('privacy')">Privacy Policy</a> | 
+        <a href="#" onclick="openModal('terms')">Terms of Service</a>
+    </footer>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('privacy')">&times;</span>
+            <h2>Privacy Policy</h2>
+            <p><strong>Last Updated:</strong> December 22, 2025</p>
+            
+            <h3>1. Information We Collect</h3>
+            <p>Habesha Calendar Converter is designed to work entirely offline. We do not collect, store, or transmit any personal information. All date conversions are performed locally on your device.</p>
+            
+            <h3>2. Data Processing</h3>
+            <p>All calendar calculations and conversions happen locally in your browser. No data is sent to our servers or any third-party services. Your date inputs remain completely private and are never stored or shared.</p>
+            
+            <h3>3. Cookies and Local Storage</h3>
+            <p>We do not use cookies or local storage to track user behavior. The application is stateless and does not retain any information between sessions.</p>
+            
+            <h3>4. Third-Party Services</h3>
+            <p>We may display Google AdSense advertisements. Google's use of advertising cookies enables it and its partners to serve ads based on users' visits to this site and/or other sites. Users may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank">Google Ads Settings</a>.</p>
+            
+            <h3>5. Children's Privacy</h3>
+            <p>Our service is available to users of all ages. We do not knowingly collect personal information from children under 13.</p>
+            
+            <h3>6. Changes to This Policy</h3>
+            <p>We may update our Privacy Policy from time to time. Any changes will be posted on this page with an updated effective date.</p>
+            
+            <h3>7. Contact Us</h3>
+            <p>If you have any questions about this Privacy Policy, please contact us through our Buy Me a Coffee page.</p>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('terms')">&times;</span>
+            <h2>Terms of Service</h2>
+            <p><strong>Last Updated:</strong> December 22, 2025</p>
+            
+            <h3>1. Acceptance of Terms</h3>
+            <p>By accessing and using Habesha Calendar Converter, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.</p>
+            
+            <h3>2. Use of Service</h3>
+            <p>Habesha Calendar Converter is provided for personal, non-commercial use. You may use the tool to convert dates between Ethiopian and Gregorian calendars. The service is provided "as is" without any guarantees of accuracy beyond our best efforts.</p>
+            
+            <h3>3. Intellectual Property</h3>
+            <p>The code, design, and functionality of this calendar converter are protected by copyright and other intellectual property laws. You may not reproduce, distribute, or create derivative works without permission.</p>
+            
+            <h3>4. Disclaimer</h3>
+            <p>While we strive for accuracy, we cannot guarantee that all conversions will be correct for every historical date. Users should verify important dates through additional sources. We are not responsible for any consequences resulting from the use of this tool.</p>
+            
+            <h3>5. Limitation of Liability</h3>
+            <p>In no event shall we be liable for any indirect, incidental, special, consequential, or punitive damages arising from the use of or inability to use this service.</p>
+            
+            <h3>6. Modifications to Service</h3>
+            <p>We reserve the right to modify or discontinue the service at any time without notice. We shall not be liable to you or any third party for any modification, suspension, or discontinuance of the service.</p>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        const ETH_EPOCH = 1723856;
+        const ETH_MONTHS = [
+            "Mäskäräm / መስከረም", "Ṭəqəmt / ጥቅምት", "Ḫədar / ኅዳር", "Taḫśaś / ታኅሣሥ",
+            "Ṭərr / ጥር", "Yäkatit / የካቲት", "Mägabit / መጋቢት", "Miyazya / ሚያዝያ",
+            "Gənbo / ግንቦት", "Säne / ሰኔ", "Ḥamle / ሐምሌ", "Nähase / ነሐሴ", "Ṗagʷəmen / ጳጉሜን"
+        ];
+
+        function isEthLeap(y) { return y % 4 === 0; }
+
+        function ethToJDN(d, m, y) {
+            let jdn = ETH_EPOCH + (y - 1) * 365 + Math.floor((y - 1) / 4);
+            jdn += m <= 12 ? (m - 1) * 30 : 12 * 30 + (m - 13);
+            return jdn + d - 1;
+        }
+
+        function jdnToEth(jdn) {
+            let r = Math.floor(jdn) - ETH_EPOCH;
+            let n = Math.floor(r / 1461);
+            r %= 1461;
+            let y = n * 4 + 1;
+            if (r >= 366) { y += Math.floor((r - 1) / 365); r = (r - 1) % 365; }
+            let m = Math.floor(r / 30) + 1;
+            let d = (r % 30) + 1;
+            if (m > 12) { m = 13; d = r - 12 * 30 + 1; }
+            return { day: d, month: m, year: y };
+        }
+
+        function gregToJDN(d, m, y) {
+            if (m <= 2) { y -= 1; m += 12; }
+            let a = Math.floor(y / 100);
+            let b = 2 - a + Math.floor(a / 4);
+            return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524;
+        }
+
+        function jdnToGreg(jdn) {
+            jdn = Math.floor(jdn + 0.5);
+            let z = Math.floor(jdn);
+            let w = Math.floor((z - 1867216.25) / 36524.25);
+            let x = Math.floor(w / 4);
+            let a = z + 1 + w - x;
+            let b = a + 1524;
+            let c = Math.floor((b - 122.1) / 365.25);
+            let d = Math.floor(365.25 * c);
+            let e = Math.floor((b - d) / 30.6001);
+            let day = b - d - Math.floor(30.6001 * e);
+            let month = e < 14 ? e - 1 : e - 13;
+            let year = month > 2 ? c - 4716 : c - 4715;
+            return { day, month, year };
+        }
+
+        function convertGtoE() {
+            const d = parseInt(document.getElementById('greg-day').value);
+            const m = parseInt(document.getElementById('greg-month').value);
+            const y = parseInt(document.getElementById('greg-year').value);
+            const res = document.getElementById('eth-result');
+            if (!d || !m || !y) { res.childNodes[0].textContent = 'Please enter a valid date'; return; }
+            const eth = jdnToEth(gregToJDN(d, m, y));
+            res.childNodes[0].textContent = `${eth.day} ${ETH_MONTHS[eth.month - 1]} ${eth.year}`;
+        }
+
+        function convertEtoG() {
+            const d = parseInt(document.getElementById('eth-day').value);
+            const m = parseInt(document.getElementById('eth-month').value);
+            const y = parseInt(document.getElementById('eth-year').value);
+            const res = document.getElementById('gre-result');
+            if (!d || !m || !y) { res.childNodes[0].textContent = 'Please enter a valid date'; return; }
+            if (m <= 12 && d > 30) { res.childNodes[0].textContent = 'Invalid day for this month'; return; }
+            if (m === 13 && d > (isEthLeap(y) ? 6 : 5)) { res.childNodes[0].textContent = 'Invalid day for Pagumē'; return; }
+            const greg = jdnToGreg(ethToJDN(d, m, y));
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            res.childNodes[0].textContent = `${greg.day} ${months[greg.month - 1]} ${greg.year}`;
+        }
+
+        function setToday() {
+            const n = new Date();
+            document.getElementById('greg-day').value = n.getDate();
+            document.getElementById('greg-month').value = n.getMonth() + 1;
+            document.getElementById('greg-year').value = n.getFullYear();
+            convertGtoE();
+        }
+
+        function copyRes(id) {
+            const el = document.getElementById(id);
+            const text = el.childNodes[0].textContent.trim();
+            if (text.includes('Enter a date') || text.includes('Please enter') || text.includes('Invalid')) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const tip = document.getElementById('tooltip');
+                const rect = el.getBoundingClientRect();
+                tip.textContent = 'Copied!'; tip.style.left = rect.right - 60 + 'px'; tip.style.top = rect.top - 40 + 'px';
+                tip.classList.add('show'); setTimeout(() => tip.classList.remove('show'), 1500);
+            });
+        }
+
+        function openModal(type) {
+            document.getElementById(type + 'Modal').style.display = 'block';
+        }
+
+        function closeModal(type) {
+            document.getElementById(type + 'Modal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        window.onload = () => {
+            const n = new Date();
+            document.getElementById('greg-day').value = n.getDate();
+            document.getElementById('greg-month').value = n.getMonth() + 1;
+            document.getElementById('greg-year').value = n.getFullYear();
+            convertGtoE();
+        };
+    </script>
+</body>
+</html>
